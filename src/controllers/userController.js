@@ -1,9 +1,21 @@
 const userService = require("../services/userService");
 
+const handleValidationError = (err, res) => {
+  const errors = {};
+  Object.keys(err.errors).forEach((field) => {
+    errors[field] = err.errors[field].message;
+  });
+
+  res.status(400).send({
+    success: false,
+    message: "Validation failed",
+    errors,
+  });
+};
 
 const register = async (req, res) => {
   try {
-    console.log("Request Body:", req.body); // Debugging line
+    console.log("Request Body:", req.body);
     const { name, email, phone, adress, password, role, businessCategory } =
       req.body;
     const user = await userService.register({
@@ -15,15 +27,28 @@ const register = async (req, res) => {
       role,
       businessCategory,
     });
-    res.status(201).send({ user });
+    res.status(201).send({ success: true, user: user });
   } catch (err) {
-    res.status(400).send({ message: err.message });
+    console.log("error ", err);
+    if (err.name === "ValidationError") {
+      handleValidationError(err, res);
+    } else if (err.name === "Error") {
+      res.status(400).send({
+        success: false,
+        message: "Register failed",
+        errors: err.message,
+      });
+    } else {
+      res
+        .status(500)
+        .send({ success: false, message: "Internal server error" });
+    }
   }
 };
 
 const approveAccess = async (req, res) => {
   const { userId, action } = req.body;
-
+  console.log("test ", req.body);
   try {
     const result = await userService.approveAccess(userId, action); // Do not pass res here
     return res.status(200).json(result); // Handle the response here

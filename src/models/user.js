@@ -14,6 +14,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      validate: {
+        validator: function (value) {
+          return /^[0-9]{8}$/.test(value); // Matches exactly 8 digits
+        },
+        message: (props) => `${props.value} must contain exactly 8 digits.`,
+      },
     },
 
     adress: {
@@ -30,16 +36,15 @@ const userSchema = new mongoose.Schema(
         validator: function (value) {
           return validator.isEmail(value);
         },
-        message: (props) => props.value + " n'est pas un email valide!",
+        message: (props) => props.value + " n'est pas un email valide ! ",
       },
     },
     password: {
       type: String,
       required: true,
-      minlength: [8, "Le mot de passe doit contenir au moins 8 caractères"],
+      minlength: [8, "The password must contain at least 8 characters."],
       validate: {
         validator: function (value) {
-          // Validation pour un mot de passe avec au moins une lettre majuscule, une minuscule, un chiffre et un caractère spécial
           return (
             /[A-Z]/.test(value) &&
             /[a-z]/.test(value) &&
@@ -48,7 +53,7 @@ const userSchema = new mongoose.Schema(
           );
         },
         message:
-          "Le mot de passe doit contenir au moins une lettre majuscule, une minuscule, un chiffre et un caractère spécial (!@#$%^&*)",
+          "The password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
       },
     },
     // Business Information (For Agencies)
@@ -88,6 +93,18 @@ const userSchema = new mongoose.Schema(
     timestamps: true, // Automatically adds createdAt and updatedAt
   }
 );
+
+// Middleware to remove some attributes if role is  "customer"
+userSchema.pre("save", function (next) {
+  if (this.role === "consumer") {
+    this.businessCategory = undefined;
+    this.status = undefined;
+    this.approvedAt = undefined;
+    this.status = undefined;
+    this.rejectionReason = undefined;
+  }
+  next();
+});
 
 // Avant de sauvegarder, on hashe le mot de passe
 userSchema.pre("save", async function (next) {

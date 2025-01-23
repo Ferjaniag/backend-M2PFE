@@ -11,7 +11,7 @@ const userService = {
     // Vérification si l'email existe déjà
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      throw new Error("Email déjà utilisé");
+      throw new Error("Email already registered");
     }
 
     // Création du nouvel utilisateur
@@ -29,7 +29,7 @@ const userService = {
     // Send email notification to admin about the new access request
     const adminEmail = process.env.ADMIN_EMAIL; // Get the admin email from environment variable
     const subject = "New Access Request";
-   const text = `Hello Admin,
+    const text = `Hello Admin,
 
 A new user, ${name}, has requested access to the platform. Please review their details and take appropriate action.
 
@@ -41,7 +41,7 @@ User's Contact Information:
 
 Thank you.`;
 
-   const html = `<p>Hello Admin,</p>
+    const html = `<p>Hello Admin,</p>
 <p>A new user, <strong>${name}</strong>, has requested access to the platform. Please review their details and take appropriate action.</p>
 
 <p><strong>User's Contact Information:</strong></p>
@@ -54,7 +54,6 @@ Thank you.`;
 
 <p>Thank you.</p>`;
 
-
     await sendEmail(email, adminEmail, subject, text, html);
     return user;
   },
@@ -63,17 +62,21 @@ Thank you.`;
   login: async (email, password) => {
     const user = await User.findOne({ email });
     if (!user) {
-      throw new Error("Utilisateur non trouvé");
+      throw new Error("User not found");
+    }
+
+    if (user.status === "pending") {
+      throw new Error("User not approved yet !");
     }
 
     const isValidPassword = await user.isPasswordValid(password);
     if (!isValidPassword) {
-      throw new Error("Mot de passe incorrect");
+      throw new Error("Password or email incorrect!");
     }
 
     // Générer un token JWT
     const token = jwt.sign(
-      { id: user._id, email: user.email },
+      { id: user._id, email: user.email, name: user.name },
       process.env.JWT_SECRET,
       {
         expiresIn: "1h",
@@ -103,7 +106,7 @@ Thank you.`;
 
   // Admin approves or rejects a user's access request
   approveAccess: async (userId, action) => {
-    if (!userId || !action || !["approve", "reject"].includes(action)) {
+    if (!userId || !action || !["Approve", "Reject"].includes(action)) {
       throw new Error(
         "Invalid request. Ensure userId and action (approve/reject) are provided."
       );
@@ -119,13 +122,26 @@ Thank you.`;
         throw new Error("User access request is already processed.");
       }
 
-      user.status = action === "approve" ? "approved" : "rejected";
-      await user.save();
+      user.status = action === "Approve" ? "approved" : "rejected";
+      const decision = action === "Approve" ? "approved" : "rejected";
+      const adminEmail = process.env.ADMIN_EMAIL; // Get the admin email from environment variable
+      const subject = "Update decision for request access";
+      const text = `Hello ${user.name},
 
+Your request for access to the platform has been ${decision}
+Thank you.`;
+
+      const html = `<p>Hello ${user.name},</p>
+<p>Your request for access to the platform has been <strong>${decision}</strong>, </p>
+<p>Thank you.</p>`;
+      console.log("email user ", user.email);
+      await user.save();
+      await sendEmail(adminEmail, user.email, subject, text, html);
       return { message: `User access request ${action}d successfully.` };
     } catch (error) {
       console.error("Error approving/rejecting access:", error);
       throw new Error("Server error while processing request.");
+    } finally {
     }
   },
   // get pending users
