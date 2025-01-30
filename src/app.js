@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const path = require("path");
 const cors = require("cors");
 const db = require("./config/db");
+
 dotenv.config();
 
 const app = express();
@@ -17,7 +18,7 @@ const routesDir = path.join(__dirname, "routes");
 fs.readdirSync(routesDir).forEach((file) => {
   const routePath = path.join(routesDir, file);
   const route = require(routePath);
-  app.use("/api", route); // Toutes les routes seront précédées de /api
+  app.use("/api", route);
 });
 
 module.exports = app;

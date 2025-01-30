@@ -12,7 +12,9 @@ const userSchema = new mongoose.Schema(
 
     phone: {
       type: String,
-      required: true,
+      required: function () {
+        return this.role === "customer"; // Required only if the role is "customer"
+      },
       trim: true,
       validate: {
         validator: function (value) {
@@ -24,7 +26,9 @@ const userSchema = new mongoose.Schema(
 
     adress: {
       type: String,
-      required: true,
+      required: function () {
+        return this.role === "customer"; // Required only if the role is "customer"
+      },
       trim: true,
     },
 
@@ -41,15 +45,15 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: function () {
+        return this.role === "customer"; // Required only if the role is "customer"
+      },
       minlength: [8, "The password must contain at least 8 characters."],
       validate: {
         validator: function (value) {
           return (
-            /[A-Z]/.test(value) &&
-            /[a-z]/.test(value) &&
-            /[0-9]/.test(value) &&
-            /[!@#$%^&*]/.test(value)
+            /[A-Z]/.test(value) && /[a-z]/.test(value) && /[0-9]/.test(value)
+            //  /[!@#$%^&*]/.test(value)
           );
         },
         message:
@@ -58,20 +62,29 @@ const userSchema = new mongoose.Schema(
     },
     // Business Information (For Agencies)
     businessCategory: {
-      type: String,
-      default: null,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Business-Category",
+    },
+    subscriptionPeriod: {
+      type: Number,
+      required: function () {
+        return this.role === "customer"; // Required only if the role is "customer"
+      },
     },
 
     // Role and Status
     role: {
       type: String,
-      enum: ["admin", "customer", "consumer"], // Roles: admin, agency, or app user
+      enum: ["superadmin", "admin", "customer", "employe", "consumer"], // Roles: admin, agency, or app user
       default: "consumer",
     },
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"], // Approval status
-      default: "pending",
+      enum: ["pending", "approved", "rejected", "activate", "desactivate"], // Approval status
+      default: function () {
+        if (this.role === "admin" || this.role === "employe") return "activate";
+        else return "pending";
+      },
     },
 
     approvedAt: {
@@ -96,12 +109,18 @@ const userSchema = new mongoose.Schema(
 
 // Middleware to remove some attributes if role is  "customer"
 userSchema.pre("save", function (next) {
-  if (this.role === "consumer") {
+  if (
+    this.role === "consumer" ||
+    this.role === "admin" ||
+    this.role === "employe"
+  ) {
     this.businessCategory = undefined;
-    this.status = undefined;
     this.approvedAt = undefined;
-    this.status = undefined;
     this.rejectionReason = undefined;
+    this.subscriptionPeriod = undefined;
+  }
+  if (this.role === "consumer") {
+    this.status = undefined;
   }
   next();
 });
