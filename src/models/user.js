@@ -83,7 +83,7 @@ const userSchema = new mongoose.Schema(
       enum: ["pending", "approved", "rejected", "activate", "desactivate"], // Approval status
       default: function () {
         if (this.role === "admin" || this.role === "employe") return "activate";
-        else return "pending";
+        else return "pending" ;
       },
     },
 
@@ -96,18 +96,18 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
-    // Optional fields for customization
+   
     profilePicture: {
       type: String,
-      default: null, // Path or URL to the user's profile picture
+      default: null, 
     },
   },
   {
-    timestamps: true, // Automatically adds createdAt and updatedAt
+    timestamps: true, 
   }
 );
 
-// Middleware to remove some attributes if role is  "customer"
+
 userSchema.pre("save", function (next) {
   if (
     this.role === "consumer" ||

@@ -112,17 +112,17 @@ const login = async (req, res) => {
   }
 };
 
-const getPendingUsers = async (req, res) => {
+const getCustomersUsers = async (req, res) => {
   try {
     // Get all users with 'pending' status
-    const pendingUsers = await userService.getPendingUsers();
+    const CustomersUsers = await userService.getCustomersUsers();
 
-    if (pendingUsers.length === 0) {
+    if (CustomersUsers.length === 0) {
       return res.status(404).json({ message: "No pending users found." });
     }
 
     // Send the list of pending users
-    return res.status(200).json({ pendingUsers });
+    return res.status(200).json({ CustomersUsers });
   } catch (error) {
     // Handle any errors from the service
     console.error("Error fetching pending users:", error);
@@ -153,7 +153,7 @@ module.exports = {
   register,
   login,
   approveAccess,
-  getPendingUsers,
+  getCustomersUsers,
   accessNewUser,
   getExistingUsers,
   updateStatusUser,

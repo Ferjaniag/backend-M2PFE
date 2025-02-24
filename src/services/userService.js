@@ -89,7 +89,7 @@ Thank you.`;
 
     // Générer un token JWT
     const token = jwt.sign(
-      { id: user._id, email: user.email, name: user.name },
+      { id: user._id, email: user.email, name: user.name, role: user.role },
       process.env.JWT_SECRET,
       {
         expiresIn: "1h",
@@ -130,14 +130,15 @@ Thank you.`;
       if (!user) {
         throw new Error("User not found.");
       }
-      if (user.status !== "pending") {
+      /* if (user.status !== "pending") {
         console.log("user statuss ", user.status);
         throw new Error("User access request is already processed.");
       }
+      */
 
       user.status = action === "Approve" ? "approved" : "rejected";
       const decision = action === "Approve" ? "approved" : "rejected";
-      const adminEmail = process.env.ADMIN_EMAIL; // Get the admin email from environment variable
+      const adminEmail = process.env.ADMIN_EMAIL;
       const subject = "Update decision for request access";
       const text = `Hello ${user.name},
 
@@ -189,18 +190,17 @@ Thank you.`;
     }
   },
   // get pending users
-  getPendingUsers: async () => {
+  getCustomersUsers: async () => {
     try {
       // Find all users with status 'pending'
-      const pendingUsers = await User.find({
-        status: "pending",
+      const Users = await User.find({
         role: "customer",
       })
         .populate("businessCategory")
         .sort({ createdAt: -1 });
-      return pendingUsers;
+      return Users;
     } catch (error) {
-      throw new Error(error.message || "Error fetching pending users.");
+      throw new Error(error.message || "Error fetching  users.");
     }
   },
 
