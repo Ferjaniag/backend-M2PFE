@@ -34,4 +34,31 @@ const deleteHotel = async (req, res) => {
   }
 };
 
-module.exports = { addHotel, deleteHotel };
+async function getHotelsByOwnerId(req, res) {
+  try {
+    const ownerId = req.params.ownerId;
+    const hotels = await hotelService.getHotelsByOwnerId(ownerId);
+
+    res.status(200).json({ success: true, data: hotels });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+}
+
+async function getHotelByIdForContract(req, res) {
+  try {
+    const hotelId = req.params.hotelId;
+    const hotel = await hotelService.getHotelByIdForContract(hotelId);
+
+    res.status(200).json({ success: true, data: hotel });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+}
+
+module.exports = {
+  addHotel,
+  deleteHotel,
+  getHotelsByOwnerId,
+  getHotelByIdForContract,
+};

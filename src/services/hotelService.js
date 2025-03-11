@@ -23,7 +23,7 @@ var hotelServices = {
         shortDescription: hotelData.shortDescription,
         longDescription: hotelData.longDescription,
         roomType: hotelData.roomType,
-        childCategory: hotelData.childCategory,
+
         hotelOptions: hotelData.hotelOptions,
         arrangements: hotelData.arrangements,
         supplements: hotelData.supplements,
@@ -52,6 +52,40 @@ var hotelServices = {
       return deletedHotel;
     } catch (error) {
       throw new Error(`Error deleting hotel: ${error.message}`);
+    }
+  },
+
+  getHotelsByOwnerId: async (ownerId) => {
+    try {
+      const userExists = await User.findById(ownerId);
+      if (!userExists) {
+        throw new Error("Owner ID not found in the User model");
+      }
+      const hotels = await Hotel.find({ owner: ownerId }).sort({
+        createdAt: -1,
+      });
+      return hotels;
+    } catch (error) {
+      throw new Error(`Error fetching hotels: ${error.message}`);
+    }
+  },
+
+  getHotelByIdForContract: async (hotelId) => {
+    try {
+      const hotel = await Hotel.findById(hotelId);
+      if (!hotel) {
+        throw new Error("Hotel ID not found");
+      }
+      return {
+        name: hotel.name,
+        roomType: hotel.roomType,
+        hotelOptions: hotel.hotelOptions,
+        arrangements: hotel.arrangements,
+        supplements: hotel.supplements,
+        weekendDays: hotel.weekendDays,
+      };
+    } catch (error) {
+      throw new Error(`Error fetching hotel: ${error.message}`);
     }
   },
 };

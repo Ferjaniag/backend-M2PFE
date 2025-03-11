@@ -192,7 +192,6 @@ Thank you.`;
   // get pending users
   getCustomersUsers: async () => {
     try {
-      // Find all users with status 'pending'
       const Users = await User.find({
         role: "customer",
       })

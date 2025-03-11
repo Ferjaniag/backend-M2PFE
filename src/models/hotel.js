@@ -9,8 +9,8 @@ const hotelSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["visible", "invisible", "activate", "inactivate"],
-      default: "invisible",
+      enum: ["visible", "invisible", "active", "inactive"],
+      default: "inactive",
     },
     name: {
       type: String,
@@ -43,7 +43,7 @@ const hotelSchema = new mongoose.Schema(
     },
     tripadvisor: {
       type: String,
-      required: true,
+      required: false,
     },
     shortDescription: {
       type: String,
@@ -51,16 +51,17 @@ const hotelSchema = new mongoose.Schema(
     },
     longDescription: {
       type: String,
-      required: true,
+      required: false,
     },
     roomType: {
       type: [String],
       required: true,
     },
-    childCategory: {
+    /*  childCategory: {
       type: [String],
       required: true,
     },
+    */
     hotelOptions: {
       type: [String],
       required: true,
@@ -75,7 +76,7 @@ const hotelSchema = new mongoose.Schema(
     },
     weekendDays: {
       type: [String],
-      required: true,
+      required: false,
     },
     images: {
       type: [String],
